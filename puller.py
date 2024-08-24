@@ -1,13 +1,20 @@
+import importlib
 import json
 import sqlite3
+import sys
 import time
-
-import tasks
 
 WAIT_TIME = 0.1
 
 con = sqlite3.connect("queue.db")
 cur = con.cursor()
+
+if len(sys.argv) != 2:
+    print(f"usage: {sys.argv[0]} tasks_module_name")
+    sys.exit(1)
+
+task_module_name = sys.argv[1]
+module = importlib.import_module(task_module_name)
 
 while True:
     try:
@@ -44,7 +51,7 @@ while True:
         con.commit()
 
         # Finally, run the task
-        task = getattr(tasks, name)
+        task = getattr(module, name)
         task(*args, **kwargs)
 
         # Mark it complete
